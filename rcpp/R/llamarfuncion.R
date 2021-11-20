@@ -1,4 +1,40 @@
 sourceCpp('practica1.cpp')
+library(microbenchmark)
+######version r#########
+my_knn_R = function(X, X0, y){
+  # X data matriX with input attributes
+  # y response variable values of instances in X  
+  # X0 vector of input attributes for prediction
+  
+  nrows = nrow(X)
+  ncols = ncol(X)
+  
+  # One of the instances is going to be the closest one:
+  #   closest_distance: it is the distance , min_output
+  closest_distance = 99999999
+  closest_output = -1
+  closest_neighbor = -1
+  
+  for(i in 1:nrows){
+    
+    distance = 0
+    for(j in 1:ncols){
+      difference = X[i,j]-X0[j]
+      distance = distance + difference * difference
+    }
+    
+    distance = sqrt(distance)
+    
+    if(distance < closest_distance){
+      closest_distance = distance
+      closest_output = y[i]
+      closest_neighbor = i
+    }
+  }
+  closest_output
+} 
+
+######checking#######
 # X contains the inputs as a matriX of real numbers
 data("iris")
 # X contains the input attributes (eXcluding the class)
@@ -20,3 +56,12 @@ X0 <- c(5.80, 3.00, 4.35, 1.30)
 my_knn_C(X, X0, y)
 library(FNN)
 FNN::knn(X, matrix(X0, nrow = 1), y, k=1)
+
+if (requireNamespace("ggplot2")) {
+  tm <- microbenchmark(knn(X, matrix(X0, nrow = 1), y, k=1),
+                       my_knn_C(X, X0, y),
+                       my_knn_R(X, X0, y), times=1000L)
+  ggplot2::autoplot(tm)
+}
+
+
